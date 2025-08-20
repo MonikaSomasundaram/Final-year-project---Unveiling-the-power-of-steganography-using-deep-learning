@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cybersecurity Chatbot</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #181818;
+            color: white;
+            text-align: center;
+        }
+        .chatbot-container {
+            width: 100%;
+            max-width: 400px;
+            margin: auto;
+            background: #252525;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 4px 10px rgba(255, 255, 255, 0.1);
+        }
+        .chatbot-header {
+            background: #ff6f00;
+            padding: 10px;
+            font-weight: bold;
+            border-radius: 10px 10px 0 0;
+        }
+        .chatbot-messages {
+            padding: 10px;
+            max-height: 300px;
+            overflow-y: auto;
+            text-align: left;
+        }
+        .chatbot-input {
+            display: flex;
+            padding: 10px;
+            background: #333;
+        }
+        .chatbot-input input {
+            flex: 1;
+            padding: 5px;
+            border: none;
+            border-radius: 5px;
+        }
+        .chatbot-input button {
+            background: #ff6f00;
+            border: none;
+            padding: 5px 10px;
+            margin-left: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .user-message {
+            color: #ff9100;
+            text-align: right;
+            margin: 5px 0;
+        }
+        .bot-message {
+            color: #00c3ff;
+            text-align: left;
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <h2>Cybersecurity Chatbot</h2>
+    <div class="chatbot-container">
+        <div class="chatbot-header">Ask a Question</div>
+        <div class="chatbot-messages" id="chatbot-messages"></div>
+        <div class="chatbot-input">
+            <input type="text" id="chatbot-input" placeholder="Ask about cybersecurity...">
+            <button onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+
+    <script>
+        const responses = {
+            "What is phishing?": "Phishing is a cyber attack where attackers impersonate a trusted entity to steal sensitive information.",
+            "How can I protect my password?": "Use a strong password with a mix of characters, enable two-factor authentication, and avoid using the same password on multiple sites.",
+            "What is a firewall?": "A firewall is a security system that monitors and controls incoming and outgoing network traffic based on security rules.",
+            "Tell me about malware": "Malware is malicious software designed to harm or exploit devices, services, or networks.",
+            "How do I stay safe online?": "Avoid clicking on suspicious links, use strong passwords, enable two-factor authentication, and keep your software updated.",
+            "What is PVD?": "PVD (Pixel Value Differencing) is a technique used in image steganography to hide data by modifying pixel values in a way that is less noticeable to the human eye."
+        };
+
+        function levenshtein(a, b) {
+            let tmp;
+            if (a.length === 0) return b.length;
+            if (b.length === 0) return a.length;
+            if (a.length > b.length) {
+                tmp = a;
+                a = b;
+                b = tmp;
+            }
+            let row = Array(a.length + 1).fill(0).map((_, i) => i);
+            for (let i = 1; i <= b.length; i++) {
+                let prev = i;
+                for (let j = 1; j <= a.length; j++) {
+                    let val;
+                    if (b[i - 1] === a[j - 1]) {
+                        val = row[j - 1];
+                    } else {
+                        val = Math.min(row[j - 1] + 1, prev + 1, row[j] + 1);
+                    }
+                    row[j - 1] = prev;
+                    prev = val;
+                }
+                row[a.length] = prev;
+            }
+            return row[a.length];
+        }
+
+        function findBestMatch(question) {
+            let bestMatch = null;
+            let lowestDistance = Infinity;
+
+            for (let key in responses) {
+                let distance = levenshtein(question.toLowerCase(), key.toLowerCase());
+                console.log(`Comparing "${question}" with "${key}", Distance: ${distance}`);
+
+                if (distance < lowestDistance) {
+                    lowestDistance = distance;
+                    bestMatch = key;
+                }
+            }
+
+            console.log("Best match:", bestMatch);
+            console.log("Lowest Distance:", lowestDistance);
+
+            return lowestDistance <= 10 ? responses[bestMatch] : "I'm not sure, but always follow best cybersecurity practices!";
+        }
+
+        function sendMessage() {
+            let input = document.getElementById("chatbot-input").value.trim();
+            let messages = document.getElementById("chatbot-messages");
+
+            if (!input) return;
+
+            messages.innerHTML += `<p class="user-message"><b>You:</b> ${input}</p>`;
+            document.getElementById("chatbot-input").value = "";
+
+            let botReply = findBestMatch(input);
+            console.log("User input:", input);
+            console.log("Bot reply:", botReply);
+
+            messages.innerHTML += `<p class="bot-message"><b>Bot:</b> ${botReply}</p>`;
+
+            messages.scrollTop = messages.scrollHeight;
+        }
+
+        document.getElementById("chatbot-input").addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {
+                sendMessage();
+            }
+        });
+    </script>
+</body>
+</html>
